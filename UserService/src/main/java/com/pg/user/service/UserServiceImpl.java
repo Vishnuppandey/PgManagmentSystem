@@ -6,6 +6,7 @@ import com.pg.user.entity.User;
 import com.pg.user.enums.Role;
 import com.pg.user.enums.Status;
 import com.pg.user.repository.UserRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,6 +28,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return responseDto;
     }
 
+
+    @PreAuthorize("hasRole('OWNER')")
     @Override
     public ResponseDto updateUser(Long id, CreateDto dto) {
 
@@ -45,6 +48,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return converToResponse(savedUser);
     }
 
+    @PreAuthorize("hasRole('OWNER')")
     @Override
     public void deleteUser(Long id) {
         User user=repository.findById(id).orElseThrow(()->
@@ -53,6 +57,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         repository.deleteById(id);
     }
 
+    @PreAuthorize("hasRole('OWNER')")
     @Override
     public ResponseDto getUserById(Long id) {
         User user=repository.findById(id).orElseThrow(()->
@@ -70,6 +75,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setStatus(Status.ACTIVE);
         return user;
     }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseDto createOwner(CreateDto dto) {
+        User user = convertToEntity(dto);
+        user.setRole(Role.OWNER);
+        return converToResponse(repository.save(user));
+    }
+
     public ResponseDto converToResponse(User user){
         ResponseDto responseDto=new ResponseDto();
         responseDto.setEmail(user.getEmail());

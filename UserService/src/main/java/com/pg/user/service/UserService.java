@@ -14,4 +14,6 @@ public interface UserService {
     void deleteUser(Long id);
 
     ResponseDto getUserById(Long id);
+
+    ResponseDto createOwner(CreateDto dto);
 }
