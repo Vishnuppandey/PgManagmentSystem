@@ -17,8 +17,8 @@ public class JwtUtil {
     private static final Key key= Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
 
 
-    public String generateToken(String username,int expiryMinute){
-        return Jwts.builder().setSubject(username).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis()+expiryMinute*60*100)).signWith(key, SignatureAlgorithm.HS256).compact();
+    public String generateToken(String username,int expiryMinute,String role,String userId){
+        return Jwts.builder().setSubject(username).claim("role",role).claim("userId",userId).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis()+expiryMinute*60*1000)).signWith(key, SignatureAlgorithm.HS256).compact();
     }
 
     public String extractUsername(String token) {

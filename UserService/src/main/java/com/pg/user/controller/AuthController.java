@@ -1,6 +1,7 @@
 package com.pg.user.controller;
 
 import com.pg.user.dto.LoginRequest;
+import com.pg.user.entity.User;
 import com.pg.user.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,16 @@ public class AuthController {
         );
 
         if (authentication.isAuthenticated()) {
-            String token = jwtUtil.generateToken(request.getUsername(), 60);
+
+            User user = (User) authentication.getPrincipal();
+
+            String token = jwtUtil.generateToken(
+                    user.getUsername(),
+                    60,
+                    user.getRole().name(),
+                    user.getId().toString()
+            );
+
             return ResponseEntity.ok(token);
         }
 
