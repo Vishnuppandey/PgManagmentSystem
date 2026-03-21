@@ -11,5 +11,5 @@ public class CreateBookingDto {
 
     // ownerId is optional depending on your flow
     // but usually needed so owner can track tenants
-    private String pgName;
+   // private String pgName;
 }

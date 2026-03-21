@@ -104,6 +104,17 @@ public class RoomServiceImpl implements RoomService {
          return dto;
     }
 
+    @Override
+	public RoomInternalDto findInternalyRoom(Long roomId) {
+		Room room=repository.findById(roomId).orElseThrow(()->new RuntimeException("room not found"));
+		RoomInternalDto dto=new RoomInternalDto();
+		dto.setAvailableBeds(room.getAvailableBeds());
+		dto.setId(room.getId());
+		dto.setOwnerId(room.getOwnerId());
+		dto.setStatus(room.getStatus());
+		return dto;
+	}
+    
     private Long extractUserIdFromToken() {
         String authHeader = request.getHeader("Authorization");
         String token = authHeader.substring(7);
@@ -132,4 +143,6 @@ public class RoomServiceImpl implements RoomService {
         dto.setStatus(room.getStatus());
         return dto;
     }
+
+	
 }

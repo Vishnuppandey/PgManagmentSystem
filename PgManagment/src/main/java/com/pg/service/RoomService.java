@@ -2,6 +2,7 @@ package com.pg.service;
 
 
 import com.pg.dto.CreateRoomDto;
+import com.pg.dto.RoomInternalDto;
 import com.pg.dto.RoomResponseDto;
 import com.pg.dto.UpdateRoomDto;
 import org.springframework.stereotype.Service;
@@ -20,4 +21,6 @@ public interface RoomService {
     List<RoomResponseDto> getRoomsByOwner();
 
     List<RoomResponseDto> getAllAvailableRooms();
+    
+    RoomInternalDto findInternalyRoom(Long roomId);
 }

@@ -1,13 +1,10 @@
 package com.pg.user.controller;
 
 import com.pg.user.dto.CreateDto;
-import com.pg.user.dto.LoginRequest;
 import com.pg.user.dto.ResponseDto;
 import com.pg.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

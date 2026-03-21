@@ -21,4 +21,6 @@ public class BookingResponseDto {
     private LocalDate joinDate;
 
     private BookingStatus status;
+    
+    private Integer seatsLeft;
 }

@@ -2,6 +2,7 @@ package com.pg.controller;
 
 
 import com.pg.dto.CreateRoomDto;
+import com.pg.dto.RoomInternalDto;
 import com.pg.dto.RoomResponseDto;
 import com.pg.dto.UpdateRoomDto;
 
@@ -42,6 +43,12 @@ public class RoomController {
             @PathVariable Long roomId) {
         service.deleteRoom(roomId);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/internal/{roomId}")
+    public RoomInternalDto getRoomInternal(@PathVariable Long roomId) {
+    	System.out.println("internal api called");
+    	return service.findInternalyRoom(roomId);
     }
 
     // OWNER only (secured in service)

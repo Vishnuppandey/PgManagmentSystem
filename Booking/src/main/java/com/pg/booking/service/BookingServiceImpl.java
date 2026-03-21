@@ -2,8 +2,11 @@ package com.pg.booking.service;
 
 import com.pg.booking.dto.BookingResponseDto;
 import com.pg.booking.dto.CreateBookingDto;
+import com.pg.booking.dto.RoomInternalDto;
+import com.pg.booking.dto.RoomResponseDto;
 import com.pg.booking.entity.Booking;
 import com.pg.booking.enums.BookingStatus;
+import com.pg.booking.feign.RoomClient;
 import com.pg.booking.kafka.BookingEvent;
 import com.pg.booking.kafka.BookingEventProducer;
 import com.pg.booking.repository.BookingRepository;
@@ -22,15 +25,18 @@ public class BookingServiceImpl implements BookingService {
     private final BookingEventProducer producer;
     private final JwtUtil jwtUtil;
     private final HttpServletRequest request;
+    private final RoomClient roomClient;
 
     public BookingServiceImpl(BookingRepository repository,
                               BookingEventProducer producer,
                               JwtUtil jwtUtil,
-                              HttpServletRequest request) {
+                              HttpServletRequest request,
+                              RoomClient roomClient) {
         this.repository = repository;
         this.producer = producer;
         this.jwtUtil = jwtUtil;
         this.request = request;
+        this.roomClient=roomClient;
     }
 
     @Override
@@ -39,15 +45,24 @@ public class BookingServiceImpl implements BookingService {
 
         Long tenantId = extractUserIdFromToken();
 
+        RoomInternalDto room = roomClient.getRoomById(dto.getRoomId());
+
+        if(room.getAvailableBeds() <= 0){
+            throw new RuntimeException("Room is full");
+        }
+
+        Long ownerId = room.getOwnerId();
+
         Booking booking = new Booking();
         booking.setRoomId(dto.getRoomId());
         booking.setTenantId(tenantId);
-        booking.setOwnerId(dto.getOwnerId());
+        booking.setOwnerId(ownerId);
         booking.setJoinDate(LocalDate.now());
         booking.setStatus(BookingStatus.ACTIVE);
 
         Booking saved = repository.save(booking);
 
+        // PRODUCE KAFKA EVENT
         BookingEvent event = new BookingEvent(
                 saved.getId(),
                 saved.getRoomId(),
@@ -57,9 +72,15 @@ public class BookingServiceImpl implements BookingService {
 
         producer.publishBookingEvent(event);
 
-        return convertToResponse(saved);
-    }
+        // FETCH ROOM AGAIN TO SHOW SEATS LEFT
+        RoomInternalDto updatedRoom = roomClient.getRoomById(dto.getRoomId());
 
+        BookingResponseDto response = convertToResponse(saved);
+        response.setSeatsLeft(updatedRoom.getAvailableBeds());
+
+        return response;
+    }
+    
     @Override
     @PreAuthorize("hasAnyRole('OWNER')")
     public BookingResponseDto cancelBooking(Long bookingId) {
@@ -142,6 +163,7 @@ public class BookingServiceImpl implements BookingService {
         dto.setRoomId(booking.getRoomId());
         dto.setTenantId(booking.getTenantId());
         dto.setOwnerId(booking.getOwnerId());
+        dto.setJoinDate(LocalDate.now());
         dto.setStatus(booking.getStatus());
         return dto;
     }
