@@ -3,7 +3,6 @@ package com.pg.booking.service;
 import com.pg.booking.dto.BookingResponseDto;
 import com.pg.booking.dto.CreateBookingDto;
 import com.pg.booking.dto.RoomInternalDto;
-import com.pg.booking.dto.RoomResponseDto;
 import com.pg.booking.entity.Booking;
 import com.pg.booking.enums.BookingStatus;
 import com.pg.booking.feign.RoomClient;
@@ -45,24 +44,27 @@ public class BookingServiceImpl implements BookingService {
 
         Long tenantId = extractUserIdFromToken();
 
+        if(repository.existsByTenantIdAndStatus(
+                tenantId, BookingStatus.ACTIVE)){
+            throw new RuntimeException("You Already have an active booking");
+        }
+
         RoomInternalDto room = roomClient.getRoomById(dto.getRoomId());
 
         if(room.getAvailableBeds() <= 0){
             throw new RuntimeException("Room is full");
         }
 
-        Long ownerId = room.getOwnerId();
-
         Booking booking = new Booking();
         booking.setRoomId(dto.getRoomId());
         booking.setTenantId(tenantId);
-        booking.setOwnerId(ownerId);
+        booking.setOwnerId(room.getOwnerId());
         booking.setJoinDate(LocalDate.now());
         booking.setStatus(BookingStatus.ACTIVE);
 
         Booking saved = repository.save(booking);
 
-        // PRODUCE KAFKA EVENT
+        // Kafka event
         BookingEvent event = new BookingEvent(
                 saved.getId(),
                 saved.getRoomId(),
@@ -72,11 +74,10 @@ public class BookingServiceImpl implements BookingService {
 
         producer.publishBookingEvent(event);
 
-        // FETCH ROOM AGAIN TO SHOW SEATS LEFT
-        RoomInternalDto updatedRoom = roomClient.getRoomById(dto.getRoomId());
-
         BookingResponseDto response = convertToResponse(saved);
-        response.setSeatsLeft(updatedRoom.getAvailableBeds());
+
+        // ✅ correct seats (no async issue)
+        response.setSeatsLeft(room.getAvailableBeds() - 1);
 
         return response;
     }

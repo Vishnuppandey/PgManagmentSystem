@@ -10,6 +10,9 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "rooms",
+uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ownerId", "roomNumber"})
+    },
         indexes = {
                 @Index(name = "idx_room_number", columnList = "roomNumber"),
                 @Index(name = "idx_room_status", columnList = "status")

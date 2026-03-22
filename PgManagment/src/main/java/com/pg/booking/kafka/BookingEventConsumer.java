@@ -6,6 +6,7 @@ import com.pg.repository.RoomRepository;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BookingEventConsumer {
@@ -17,14 +18,18 @@ public class BookingEventConsumer {
     }
 
     @KafkaListener(topics = "booking-events", groupId = "room-service-group")
+    @Transactional
     public void consumeBookingEvent(BookingEvent event){
 
-        Room room = repository.findById(event.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
+        Room room = repository.findByIdForUpdate(event.getRoomId());
 
         switch(event.getEventType()){
 
             case "BOOKING_CREATED":
+
+                if(room.getAvailableBeds() <= 0){
+                    throw new RuntimeException("Room full");
+                }
 
                 room.setAvailableBeds(room.getAvailableBeds() - 1);
 
@@ -35,7 +40,6 @@ public class BookingEventConsumer {
                 break;
 
             case "BOOKING_CANCELLED":
-
             case "TENANT_LEFT":
 
                 room.setAvailableBeds(room.getAvailableBeds() + 1);

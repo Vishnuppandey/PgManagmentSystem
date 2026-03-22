@@ -23,4 +23,5 @@ public interface RoomService {
     List<RoomResponseDto> getAllAvailableRooms();
     
     RoomInternalDto findInternalyRoom(Long roomId);
+    
 }

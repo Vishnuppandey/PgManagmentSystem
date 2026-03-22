@@ -1,6 +1,9 @@
 package com.pg.booking.repository;
 
 import com.pg.booking.entity.Booking;
+import com.pg.booking.enums.BookingStatus;
+import com.pg.booking.enums.RoomStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +17,5 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
     List<Booking> findByOwnerId(Long ownerId);
 
     List<Booking> findByRoomId(Long roomId);
+    boolean existsByTenantIdAndStatus(Long tenantId, BookingStatus status);
 }

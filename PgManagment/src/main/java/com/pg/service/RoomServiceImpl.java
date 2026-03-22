@@ -34,7 +34,9 @@ public class RoomServiceImpl implements RoomService {
     public RoomResponseDto createRoom(CreateRoomDto dto) {
 
         Long ownerId = extractUserIdFromToken();
-        System.out.println(ownerId);
+        if(repository.existsByOwnerIdAndRoomNumber(ownerId, dto.getRoomNumber())){
+            throw new RuntimeException("Room already exists for this owner");
+        }
 
         Room room = convertToEntity(dto);
         room.setOwnerId(ownerId);
