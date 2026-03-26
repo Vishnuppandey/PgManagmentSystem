@@ -129,12 +129,12 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('OWNER')")
+    @PreAuthorize("hasAnyRole('TENANT','OWNER')")
     public List<BookingResponseDto> getBookingsByTenant() {
 
         Long tenantId = extractUserIdFromToken();
 
-        return repository.findByTenantId(tenantId)
+        return repository.findByTenantIdAndStatus(tenantId, BookingStatus.ACTIVE)
                 .stream()
                 .map(this::convertToResponse)
                 .toList();
@@ -146,7 +146,7 @@ public class BookingServiceImpl implements BookingService {
 
         Long ownerId = extractUserIdFromToken();
 
-        return repository.findByOwnerId(ownerId)
+        return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.ACTIVE)
                 .stream()
                 .map(this::convertToResponse)
                 .toList();

@@ -12,9 +12,9 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking,Long> {
 
-    List<Booking> findByTenantId(Long tenantId);
+	List<Booking> findByTenantIdAndStatus(Long tenantId, BookingStatus status);
 
-    List<Booking> findByOwnerId(Long ownerId);
+	List<Booking> findByOwnerIdAndStatus(Long ownerId, BookingStatus status);
 
     List<Booking> findByRoomId(Long roomId);
     boolean existsByTenantIdAndStatus(Long tenantId, BookingStatus status);
